@@ -5,6 +5,15 @@ from typing import Optional
 
 app = FastAPI(title="Happy Trails Samiti API", version="0.1.0")
 
+
+@app.get("/")
+def root():
+    return {
+        "status": "online",
+        "application": "Happy Trails Samiti",
+        "message": "Happy Trails Samiti API is running"
+    }
+
 class Transaction(BaseModel):
     transaction_type: str
     category: str
