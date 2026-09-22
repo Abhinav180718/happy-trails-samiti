@@ -1,0 +1,42 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Happy Trails Samiti</title>
+  <style>
+    body{margin:0;font-family:Arial,sans-serif;background:#f5f6f8;color:#172033}
+    .app{max-width:1200px;margin:auto;padding:24px}
+    header{background:#172033;color:white;border-radius:14px;padding:24px;margin-bottom:20px}
+    .cards{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+    .card{background:white;border-radius:12px;padding:20px;box-shadow:0 2px 8px #0001}
+    .label{color:#667085;font-size:14px}.value{font-size:28px;font-weight:700;margin-top:8px}
+    table{width:100%;border-collapse:collapse;background:white;border-radius:12px;overflow:hidden}
+    th,td{padding:14px;text-align:left;border-bottom:1px solid #eee}
+    th{background:#fafafa}
+    @media(max-width:800px){.cards{grid-template-columns:1fr 1fr}}
+    @media(max-width:500px){.cards{grid-template-columns:1fr}.app{padding:12px}}
+  </style>
+</head>
+<body>
+<div class="app">
+<header>
+  <h1>Happy Trails Samiti</h1>
+  <div>Accounts & Sponsorship Management</div>
+</header>
+
+<div class="cards">
+  <div class="card"><div class="label">Total Collection</div><div class="value">₹0</div></div>
+  <div class="card"><div class="label">Total Expenses</div><div class="value">₹0</div></div>
+  <div class="card"><div class="label">Current Balance</div><div class="value">₹0</div></div>
+  <div class="card"><div class="label">Pending Sponsorship</div><div class="value">₹0</div></div>
+</div>
+
+<h2>Recent Transactions</h2>
+<table>
+<thead><tr><th>Date</th><th>Transaction</th><th>Name/Vendor</th><th>Category</th><th>Amount</th><th>Proof</th></tr></thead>
+<tbody><tr><td colspan="6">No transactions yet. The transaction module will populate this table.</td></tr></tbody>
+</table>
+</div>
+</body>
+</html>
