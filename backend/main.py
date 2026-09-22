@@ -1,9 +1,26 @@
-from fastapi import FastAPI
-from pydantic import BaseModel
+import os
 from datetime import date
 from typing import Optional
 
-app = FastAPI(title="Happy Trails Samiti API", version="0.1.0")
+from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel
+from sqlalchemy import create_engine, text
+from sqlalchemy.exc import SQLAlchemyError
+
+app = FastAPI(
+    title="Happy Trails Samiti API",
+    version="0.2.0"
+)
+
+DATABASE_URL = os.getenv("DATABASE_URL")
+
+if not DATABASE_URL:
+    raise RuntimeError("DATABASE_URL environment variable is not configured")
+
+engine = create_engine(
+    DATABASE_URL,
+    pool_pre_ping=True
+)
 
 
 @app.get("/")
@@ -13,6 +30,62 @@ def root():
         "application": "Happy Trails Samiti",
         "message": "Happy Trails Samiti API is running"
     }
+
+
+@app.get("/health")
+def health():
+    try:
+        with engine.connect() as connection:
+            connection.execute(text("SELECT 1"))
+
+        return {
+            "status": "healthy",
+            "database": "connected"
+        }
+
+    except SQLAlchemyError as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Database connection failed: {str(e)}"
+        )
+
+
+@app.get("/api/transactions")
+def get_transactions():
+    try:
+        with engine.connect() as connection:
+            result = connection.execute(
+                text("""
+                    SELECT
+                        id,
+                        transaction_ref,
+                        transaction_date,
+                        transaction_type,
+                        category,
+                        name_or_vendor,
+                        flat_number,
+                        amount,
+                        payment_mode,
+                        utr,
+                        remarks
+                    FROM transactions
+                    ORDER BY transaction_date DESC, id DESC
+                """)
+            )
+
+            transactions = []
+
+            for row in result:
+                transactions.append(dict(row._mapping))
+
+            return transactions
+
+    except SQLAlchemyError as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Unable to retrieve transactions: {str(e)}"
+        )
+
 
 class Transaction(BaseModel):
     transaction_type: str
@@ -24,20 +97,71 @@ class Transaction(BaseModel):
     utr: Optional[str] = None
     remarks: Optional[str] = None
 
-transactions = []
-
-@app.get("/health")
-def health():
-    return {"status": "ok", "application": "Happy Trails Samiti"}
-
-@app.get("/api/transactions")
-def get_transactions():
-    return transactions
 
 @app.post("/api/transactions")
 def add_transaction(transaction: Transaction):
-    item = transaction.model_dump()
-    item["id"] = f"HT-{len(transactions)+1:05d}"
-    item["date"] = str(date.today())
-    transactions.append(item)
-    return item
+
+    try:
+        with engine.begin() as connection:
+
+            next_id = connection.execute(
+                text("SELECT COALESCE(MAX(id), 0) + 1 FROM transactions")
+            ).scalar()
+
+            transaction_ref = f"HT-{int(next_id):05d}"
+
+            result = connection.execute(
+                text("""
+                    INSERT INTO transactions (
+                        transaction_ref,
+                        transaction_date,
+                        transaction_type,
+                        category,
+                        name_or_vendor,
+                        flat_number,
+                        amount,
+                        payment_mode,
+                        utr,
+                        remarks
+                    )
+                    VALUES (
+                        :transaction_ref,
+                        :transaction_date,
+                        :transaction_type,
+                        :category,
+                        :name_or_vendor,
+                        :flat_number,
+                        :amount,
+                        :payment_mode,
+                        :utr,
+                        :remarks
+                    )
+                    RETURNING id, transaction_ref
+                """),
+                {
+                    "transaction_ref": transaction_ref,
+                    "transaction_date": date.today(),
+                    "transaction_type": transaction.transaction_type,
+                    "category": transaction.category,
+                    "name_or_vendor": transaction.name,
+                    "flat_number": transaction.flat_number,
+                    "amount": transaction.amount,
+                    "payment_mode": transaction.payment_mode,
+                    "utr": transaction.utr,
+                    "remarks": transaction.remarks
+                }
+            )
+
+            row = result.fetchone()
+
+            return {
+                "status": "success",
+                "id": row.id,
+                "transaction_ref": row.transaction_ref
+            }
+
+    except SQLAlchemyError as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Unable to save transaction: {str(e)}"
+        )
