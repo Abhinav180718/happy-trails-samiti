@@ -118,9 +118,131 @@ def dashboard():
             detail=f"Dashboard query failed: {str(e)}"
         )
 
+def create_signed_url(storage_path: str):
+    """
+    Create a temporary signed URL for a private Supabase Storage file.
+    URL will be valid for 1 hour.
+    """
+
+    signed_url = (
+        f"{SUPABASE_URL.rstrip('/')}"
+        f"/storage/v1/object/sign/"
+        f"payment-proofs/{storage_path.lstrip('/')}"
+    )
+
+    headers = {
+        "Authorization": f"Bearer {SUPABASE_SECRET_KEY}",
+        "apikey": SUPABASE_SECRET_KEY
+    }
+
+    response = requests.post(
+        signed_url,
+        headers=headers,
+        json={
+            "expiresIn": 3600
+        },
+        timeout=30
+    )
+
+    if response.status_code not in [200, 201]:
+        return None
+
+    data = response.json()
+
+    # Supabase normally returns:
+    # {"signedURL": "..."}
+    signed_path = data.get("signedURL")
+
+    if not signed_path:
+        return None
+
+    if signed_path.startswith("http"):
+        return signed_path
+
+    return (
+        f"{SUPABASE_URL.rstrip('/')}"
+        f"/storage/v1{signed_path}"
+    )
+
 
 @app.get("/api/transactions")
 def get_transactions():
+
+    try:
+
+        with engine.connect() as connection:
+
+            result = connection.execute(
+                text("""
+                    SELECT
+                        t.id,
+                        t.transaction_ref,
+                        t.transaction_date,
+                        t.transaction_type,
+                        t.category,
+                        t.name_or_vendor,
+                        t.flat_number,
+                        t.mobile,
+                        t.amount,
+                        t.payment_mode,
+                        t.utr,
+                        t.remarks,
+                        p.file_name,
+                        p.storage_path
+                    FROM transactions t
+                    LEFT JOIN payment_proofs p
+                        ON p.transaction_id = t.id
+                    ORDER BY
+                        t.transaction_date DESC,
+                        t.id DESC
+                """)
+            )
+
+            transactions = []
+
+            for row in result:
+
+                transaction = dict(row._mapping)
+
+                storage_path = transaction.get(
+                    "storage_path"
+                )
+
+                transaction["has_proof"] = bool(
+                    storage_path
+                )
+
+                transaction["proof_url"] = None
+
+                if storage_path:
+
+                    transaction["proof_url"] = (
+                        create_signed_url(
+                            storage_path
+                        )
+                    )
+
+                # Don't expose internal storage path
+                transaction.pop(
+                    "storage_path",
+                    None
+                )
+
+                transactions.append(
+                    transaction
+                )
+
+            return transactions
+
+    except SQLAlchemyError as e:
+
+        raise HTTPException(
+            status_code=500,
+            detail=(
+                "Unable to retrieve transactions: "
+                f"{str(e)}"
+            )
+        )
 
     try:
         with engine.connect() as connection:
