@@ -9,7 +9,7 @@ from sqlalchemy.exc import SQLAlchemyError
 
 app = FastAPI(
     title="Happy Trails Samiti API",
-    version="0.2.0"
+    version="0.3.0"
 )
 
 DATABASE_URL = os.getenv("DATABASE_URL")
@@ -50,10 +50,64 @@ def health():
         )
 
 
-@app.get("/api/transactions")
-def get_transactions():
+@app.get("/api/dashboard")
+def dashboard():
+
     try:
         with engine.connect() as connection:
+
+            income = connection.execute(
+                text("""
+                    SELECT COALESCE(SUM(amount), 0)
+                    FROM transactions
+                    WHERE transaction_type = 'income'
+                """)
+            ).scalar() or 0
+
+            expenses = connection.execute(
+                text("""
+                    SELECT COALESCE(SUM(amount), 0)
+                    FROM transactions
+                    WHERE transaction_type = 'expense'
+                """)
+            ).scalar() or 0
+
+            committed = connection.execute(
+                text("""
+                    SELECT COALESCE(SUM(committed_amount), 0)
+                    FROM sponsorships
+                """)
+            ).scalar() or 0
+
+            received = connection.execute(
+                text("""
+                    SELECT COALESCE(SUM(received_amount), 0)
+                    FROM sponsorships
+                """)
+            ).scalar() or 0
+
+            return {
+                "total_income": float(income),
+                "total_expenses": float(expenses),
+                "balance": float(income - expenses),
+                "sponsorship_committed": float(committed),
+                "sponsorship_received": float(received),
+                "sponsorship_pending": float(committed - received)
+            }
+
+    except SQLAlchemyError as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Dashboard query failed: {str(e)}"
+        )
+
+
+@app.get("/api/transactions")
+def get_transactions():
+
+    try:
+        with engine.connect() as connection:
+
             result = connection.execute(
                 text("""
                     SELECT
@@ -73,12 +127,10 @@ def get_transactions():
                 """)
             )
 
-            transactions = []
-
-            for row in result:
-                transactions.append(dict(row._mapping))
-
-            return transactions
+            return [
+                dict(row._mapping)
+                for row in result
+            ]
 
     except SQLAlchemyError as e:
         raise HTTPException(
@@ -88,6 +140,7 @@ def get_transactions():
 
 
 class Transaction(BaseModel):
+
     transaction_type: str
     category: str
     name: str
@@ -101,11 +154,27 @@ class Transaction(BaseModel):
 @app.post("/api/transactions")
 def add_transaction(transaction: Transaction):
 
+    if transaction.transaction_type not in ["income", "expense"]:
+        raise HTTPException(
+            status_code=400,
+            detail="transaction_type must be income or expense"
+        )
+
+    if transaction.amount <= 0:
+        raise HTTPException(
+            status_code=400,
+            detail="Amount must be greater than zero"
+        )
+
     try:
+
         with engine.begin() as connection:
 
             next_id = connection.execute(
-                text("SELECT COALESCE(MAX(id), 0) + 1 FROM transactions")
+                text("""
+                    SELECT COALESCE(MAX(id), 0) + 1
+                    FROM transactions
+                """)
             ).scalar()
 
             transaction_ref = f"HT-{int(next_id):05d}"
@@ -161,6 +230,7 @@ def add_transaction(transaction: Transaction):
             }
 
     except SQLAlchemyError as e:
+
         raise HTTPException(
             status_code=500,
             detail=f"Unable to save transaction: {str(e)}"
