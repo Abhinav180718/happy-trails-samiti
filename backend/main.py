@@ -319,9 +319,9 @@ async def upload_payment_proof(
 
         # Supabase Storage upload URL
         upload_url = (
-            f"{SUPABASE_URL}/storage/v1/object/"
-            f"payment-proofs/{storage_path}"
-        )
+    f"{SUPABASE_URL.rstrip('/')}/storage/v1/object/"
+    f"payment-proofs/{storage_path.lstrip('/')}"
+)
 
         headers = {
             "Authorization": f"Bearer {SUPABASE_SECRET_KEY}",
