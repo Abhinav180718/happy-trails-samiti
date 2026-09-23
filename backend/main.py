@@ -124,6 +124,7 @@ def get_transactions():
                         category,
                         name_or_vendor,
                         flat_number,
+                        mobile,
                         amount,
                         payment_mode,
                         utr,
