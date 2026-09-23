@@ -2,7 +2,9 @@ import os
 from datetime import date
 from typing import Optional
 
+
 from fastapi import FastAPI, HTTPException
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from sqlalchemy import create_engine, text
 from sqlalchemy.exc import SQLAlchemyError
@@ -48,6 +50,10 @@ def health():
             status_code=500,
             detail=f"Database connection failed: {str(e)}"
         )
+
+@app.get("/app")
+def app_page():
+    return FileResponse("frontend/index.html")
 
 
 @app.get("/api/dashboard")
