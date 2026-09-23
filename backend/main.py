@@ -257,3 +257,134 @@ def add_transaction(transaction: Transaction):
             status_code=500,
             detail=f"Unable to save transaction: {str(e)}"
         )
+
+@app.post("/api/transactions/{transaction_id}/proof")
+async def upload_payment_proof(
+    transaction_id: int,
+    file: UploadFile = File(...)
+):
+
+    allowed_types = {
+        "image/jpeg": ".jpg",
+        "image/png": ".png",
+        "image/webp": ".webp",
+        "application/pdf": ".pdf"
+    }
+
+    if file.content_type not in allowed_types:
+        raise HTTPException(
+            status_code=400,
+            detail="Only JPG, PNG, WEBP or PDF files are allowed"
+        )
+
+    file_content = await file.read()
+
+    max_size = 10 * 1024 * 1024
+
+    if len(file_content) > max_size:
+        raise HTTPException(
+            status_code=400,
+            detail="File size must be less than 10 MB"
+        )
+
+    try:
+
+        # Check transaction exists
+        with engine.connect() as connection:
+
+            transaction = connection.execute(
+                text("""
+                    SELECT id
+                    FROM transactions
+                    WHERE id = :transaction_id
+                """),
+                {
+                    "transaction_id": transaction_id
+                }
+            ).fetchone()
+
+        if not transaction:
+            raise HTTPException(
+                status_code=404,
+                detail="Transaction not found"
+            )
+
+        # Create unique storage path
+        extension = allowed_types[file.content_type]
+
+        storage_path = (
+            f"transactions/{transaction_id}/"
+            f"{uuid.uuid4()}{extension}"
+        )
+
+        # Supabase Storage upload URL
+        upload_url = (
+            f"{SUPABASE_URL}/storage/v1/object/"
+            f"payment-proofs/{storage_path}"
+        )
+
+        headers = {
+            "Authorization": f"Bearer {SUPABASE_SECRET_KEY}",
+            "apikey": SUPABASE_SECRET_KEY,
+            "Content-Type": file.content_type
+        }
+
+        response = requests.post(
+            upload_url,
+            headers=headers,
+            data=file_content,
+            timeout=30
+        )
+
+        if response.status_code not in [200, 201]:
+            raise HTTPException(
+                status_code=500,
+                detail=f"Supabase upload failed: {response.text}"
+            )
+
+        # Save proof information in database
+        with engine.begin() as connection:
+
+            result = connection.execute(
+                text("""
+                    INSERT INTO payment_proofs (
+                        transaction_id,
+                        file_name,
+                        file_path,
+                        storage_path
+                    )
+                    VALUES (
+                        :transaction_id,
+                        :file_name,
+                        :file_path,
+                        :storage_path
+                    )
+                    RETURNING id
+                """),
+                {
+                    "transaction_id": transaction_id,
+                    "file_name": file.filename,
+                    "file_path": storage_path,
+                    "storage_path": storage_path
+                }
+            )
+
+            proof_id = result.scalar()
+
+        return {
+            "status": "success",
+            "message": "Payment proof uploaded successfully",
+            "proof_id": proof_id,
+            "transaction_id": transaction_id,
+            "file_name": file.filename,
+            "storage_path": storage_path
+        }
+
+    except HTTPException:
+        raise
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Unable to upload payment proof: {str(e)}"
+        )
