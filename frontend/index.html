@@ -1,538 +1,1056 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<meta charset="UTF-8">
+    <title>Happy Trails Samiti</title>
 
-<meta name="viewport"
-      content="width=device-width, initial-scale=1.0">
+    <style>
+        * {
+            box-sizing: border-box;
+        }
 
-<title>Happy Trails Samiti</title>
+        body {
+            margin: 0;
+            font-family: Arial, Helvetica, sans-serif;
+            background: #f4f6f9;
+            color: #222;
+        }
 
-<style>
+        .header {
+            background: #7b1e1e;
+            color: white;
+            padding: 20px;
+        }
 
-* {
-    box-sizing: border-box;
-}
+        .header h1 {
+            margin: 0;
+            font-size: 26px;
+        }
 
-body {
-    margin: 0;
-    font-family: Arial, sans-serif;
-    background: #f5f7fa;
-    color: #172033;
-}
+        .header p {
+            margin: 6px 0 0;
+            opacity: 0.9;
+        }
 
-header {
-    background: #172033;
-    color: white;
-    padding: 22px;
-}
+        .container {
+            max-width: 1200px;
+            margin: 25px auto;
+            padding: 0 15px;
+        }
 
-header h1 {
-    margin: 0;
-    font-size: 25px;
-}
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-bottom: 25px;
+        }
 
-header p {
-    margin: 6px 0 0;
-    opacity: 0.8;
-}
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
 
-.container {
-    max-width: 1200px;
-    margin: auto;
-    padding: 20px;
-}
+        .card-title {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 8px;
+        }
 
-.cards {
-    display: grid;
-    grid-template-columns:
-        repeat(4, 1fr);
+        .card-value {
+            font-size: 25px;
+            font-weight: bold;
+        }
 
-    gap: 15px;
-}
+        .section {
+            background: white;
+            padding: 22px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
 
-.card {
-    background: white;
-    border-radius: 12px;
-    padding: 20px;
+        .section h2 {
+            margin-top: 0;
+            color: #7b1e1e;
+        }
 
-    box-shadow:
-        0 2px 8px rgba(0,0,0,0.08);
-}
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+        }
 
-.card-title {
-    font-size: 14px;
-    color: #667085;
-}
+        .field {
+            display: flex;
+            flex-direction: column;
+        }
 
-.card-value {
-    font-size: 28px;
-    font-weight: bold;
-    margin-top: 8px;
-}
+        .field label {
+            font-weight: bold;
+            margin-bottom: 6px;
+            font-size: 14px;
+        }
 
-.section {
-    margin-top: 25px;
-}
+        input,
+        select,
+        textarea {
+            width: 100%;
+            padding: 11px;
+            border: 1px solid #ccc;
+            border-radius: 7px;
+            font-size: 15px;
+        }
 
-.section-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
+        textarea {
+            min-height: 80px;
+            resize: vertical;
+        }
 
-button {
-    background: #172033;
-    color: white;
+        .full {
+            grid-column: 1 / -1;
+        }
 
-    border: none;
-    border-radius: 8px;
+        .button-row {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
 
-    padding: 11px 18px;
+        button {
+            border: none;
+            padding: 12px 22px;
+            border-radius: 7px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: bold;
+        }
 
-    cursor: pointer;
-}
+        .save-btn {
+            background: #7b1e1e;
+            color: white;
+        }
 
-button:hover {
-    opacity: 0.9;
-}
+        .save-btn:hover {
+            background: #5f1515;
+        }
 
-.table-container {
-    background: white;
+        .reset-btn {
+            background: #ddd;
+            color: #222;
+        }
 
-    border-radius: 12px;
+        .message {
+            margin-top: 15px;
+            padding: 12px;
+            border-radius: 7px;
+            display: none;
+        }
 
-    overflow-x: auto;
+        .success {
+            background: #d9f5df;
+            color: #176b2c;
+        }
 
-    box-shadow:
-        0 2px 8px rgba(0,0,0,0.08);
-}
+        .error {
+            background: #fde0e0;
+            color: #a00000;
+        }
 
-table {
-    width: 100%;
-    border-collapse: collapse;
-}
+        .upload-box {
+            border: 2px dashed #bbb;
+            padding: 15px;
+            border-radius: 8px;
+            background: #fafafa;
+        }
 
-th,
-td {
-    padding: 14px;
+        .table-container {
+            overflow-x: auto;
+        }
 
-    border-bottom:
-        1px solid #eeeeee;
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 850px;
+        }
 
-    text-align: left;
-}
+        th,
+        td {
+            padding: 11px;
+            border-bottom: 1px solid #eee;
+            text-align: left;
+        }
 
-th {
-    background: #fafafa;
-}
+        th {
+            background: #f1f1f1;
+        }
 
-.income {
-    font-weight: bold;
-}
+        .income {
+            color: green;
+            font-weight: bold;
+        }
 
-.expense {
-    font-weight: bold;
-}
+        .expense {
+            color: #c62828;
+            font-weight: bold;
+        }
 
-.empty {
-    padding: 30px;
+        .small {
+            font-size: 12px;
+            color: #777;
+            margin-top: 5px;
+        }
 
-    text-align: center;
+        .loading {
+            color: #777;
+        }
 
-    color: #667085;
-}
+        @media (max-width: 900px) {
+            .cards {
+                grid-template-columns: repeat(2, 1fr);
+            }
 
-@media(max-width:800px) {
+            .form-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
 
-    .cards {
-        grid-template-columns:
-            repeat(2, 1fr);
-    }
+        @media (max-width: 600px) {
+            .cards {
+                grid-template-columns: 1fr;
+            }
 
-}
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
 
-@media(max-width:500px) {
+            .header h1 {
+                font-size: 22px;
+            }
 
-    .container {
-        padding: 12px;
-    }
+            .container {
+                margin-top: 15px;
+            }
 
-    .cards {
-        grid-template-columns: 1fr;
-    }
-
-    header h1 {
-        font-size: 21px;
-    }
-
-}
-
-</style>
-
+            .section {
+                padding: 15px;
+            }
+        }
+    </style>
 </head>
-
 
 <body>
 
-
-<header>
+<div class="header">
+    <div class="container">
+        <h1>Happy Trails Samiti</h1>
+        <p>Durga Puja Financial Management</p>
+    </div>
+</div>
 
 <div class="container">
 
-<h1>
-Happy Trails Samiti
-</h1>
+    <!-- DASHBOARD -->
 
-<p>
-Accounts & Sponsorship Management
-</p>
+    <div class="cards">
 
-</div>
+        <div class="card">
+            <div class="card-title">Total Income</div>
+            <div class="card-value" id="totalIncome">₹0</div>
+        </div>
 
-</header>
+        <div class="card">
+            <div class="card-title">Total Expenses</div>
+            <div class="card-value" id="totalExpenses">₹0</div>
+        </div>
 
+        <div class="card">
+            <div class="card-title">Balance</div>
+            <div class="card-value" id="balance">₹0</div>
+        </div>
 
-<div class="container">
+        <div class="card">
+            <div class="card-title">Sponsorship Pending</div>
+            <div class="card-value" id="sponsorshipPending">₹0</div>
+        </div>
 
+    </div>
 
-<!-- DASHBOARD -->
 
-<div class="cards">
+    <!-- ADD TRANSACTION -->
 
+    <div class="section">
 
-<div class="card">
+        <h2>➕ Add Transaction</h2>
 
-<div class="card-title">
-Total Income
-</div>
+        <form id="transactionForm">
 
-<div
-id="income"
-class="card-value">
+            <div class="form-grid">
 
-₹0
+                <div class="field">
+                    <label>Transaction Type *</label>
 
-</div>
+                    <select id="transactionType" required>
+                        <option value="">Select</option>
+                        <option value="income">Income</option>
+                        <option value="expense">Expense</option>
+                    </select>
+                </div>
 
-</div>
 
+                <div class="field">
 
-<div class="card">
+                    <label>Category *</label>
 
-<div class="card-title">
-Total Expenses
-</div>
+                    <select id="category" required>
 
-<div
-id="expenses"
-class="card-value">
+                        <option value="">Select Category</option>
 
-₹0
+                        <option value="Sponsorship">
+                            Sponsorship
+                        </option>
 
-</div>
+                        <option value="Donation">
+                            Donation
+                        </option>
 
-</div>
+                        <option value="Membership">
+                            Membership
+                        </option>
 
+                        <option value="Tent">
+                            Tent
+                        </option>
 
-<div class="card">
+                        <option value="Sound">
+                            Sound
+                        </option>
 
-<div class="card-title">
-Current Balance
-</div>
+                        <option value="Decoration">
+                            Decoration
+                        </option>
 
-<div
-id="balance"
-class="card-value">
+                        <option value="Food">
+                            Food
+                        </option>
 
-₹0
+                        <option value="Puja">
+                            Puja
+                        </option>
 
-</div>
+                        <option value="Electricity">
+                            Electricity
+                        </option>
 
-</div>
+                        <option value="Other">
+                            Other
+                        </option>
 
+                    </select>
 
-<div class="card">
+                </div>
 
-<div class="card-title">
-Pending Sponsorship
-</div>
 
-<div
-id="pending"
-class="card-value">
+                <div class="field">
 
-₹0
+                    <label>Name / Vendor *</label>
 
-</div>
+                    <input
+                        type="text"
+                        id="name"
+                        placeholder="Sponsor name or vendor"
+                        required
+                    >
 
-</div>
+                </div>
 
 
-</div>
+                <div class="field">
 
+                    <label>Flat Number</label>
 
+                    <input
+                        type="text"
+                        id="flatNumber"
+                        placeholder="Example: A-1204"
+                    >
 
-<!-- TRANSACTIONS -->
+                </div>
 
-<div class="section">
 
-<div class="section-header">
+                <div class="field">
 
-<h2>
-Recent Transactions
-</h2>
+                    <label>Mobile Number</label>
 
-<button
-onclick="refreshData()">
+                    <input
+                        type="tel"
+                        id="mobile"
+                        placeholder="10 digit mobile number"
+                    >
 
-Refresh
+                </div>
 
-</button>
 
-</div>
+                <div class="field">
 
+                    <label>Amount *</label>
 
-<div class="table-container">
+                    <input
+                        type="number"
+                        id="amount"
+                        placeholder="₹ Amount"
+                        min="1"
+                        step="0.01"
+                        required
+                    >
 
-<table>
+                </div>
 
-<thead>
 
-<tr>
+                <div class="field">
 
-<th>Date</th>
+                    <label>Payment Mode</label>
 
-<th>Reference</th>
+                    <select id="paymentMode">
 
-<th>Type</th>
+                        <option value="">
+                            Select
+                        </option>
 
-<th>Name</th>
+                        <option value="UPI">
+                            UPI
+                        </option>
 
-<th>Category</th>
+                        <option value="Bank Transfer">
+                            Bank Transfer
+                        </option>
 
-<th>Amount</th>
+                        <option value="Cash">
+                            Cash
+                        </option>
 
-<th>Payment</th>
+                        <option value="Cheque">
+                            Cheque
+                        </option>
 
-</tr>
+                        <option value="Other">
+                            Other
+                        </option>
 
-</thead>
+                    </select>
 
+                </div>
 
-<tbody id="transactions">
 
-<tr>
+                <div class="field">
 
-<td
-colspan="7"
-class="empty">
+                    <label>UTR / Transaction ID</label>
 
-Loading...
+                    <input
+                        type="text"
+                        id="utr"
+                        placeholder="UPI / bank transaction ID"
+                    >
 
-</td>
+                </div>
 
-</tr>
 
-</tbody>
+                <div class="field full">
 
-</table>
+                    <label>Payment Screenshot / Receipt</label>
 
-</div>
+                    <div class="upload-box">
 
-</div>
+                        <input
+                            type="file"
+                            id="paymentProof"
+                            accept=".jpg,.jpeg,.png,.webp,.pdf"
+                        >
 
+                        <div class="small">
+                            JPG, PNG, WEBP or PDF. Maximum 10 MB.
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div class="field full">
+
+                    <label>Remarks</label>
+
+                    <textarea
+                        id="remarks"
+                        placeholder="Any additional information..."
+                    ></textarea>
+
+                </div>
+
+            </div>
+
+
+            <div class="button-row">
+
+                <button
+                    type="submit"
+                    class="save-btn"
+                    id="saveButton"
+                >
+                    Save Transaction
+                </button>
+
+                <button
+                    type="button"
+                    class="reset-btn"
+                    onclick="resetForm()"
+                >
+                    Clear
+                </button>
+
+            </div>
+
+
+            <div
+                id="formMessage"
+                class="message"
+            ></div>
+
+        </form>
+
+    </div>
+
+
+    <!-- TRANSACTIONS -->
+
+    <div class="section">
+
+        <h2>📋 Recent Transactions</h2>
+
+        <div
+            id="transactionsLoading"
+            class="loading"
+        >
+            Loading transactions...
+        </div>
+
+        <div class="table-container">
+
+            <table>
+
+                <thead>
+
+                    <tr>
+
+                        <th>Date</th>
+
+                        <th>Reference</th>
+
+                        <th>Type</th>
+
+                        <th>Category</th>
+
+                        <th>Name / Vendor</th>
+
+                        <th>Flat</th>
+
+                        <th>Mobile</th>
+
+                        <th>Amount</th>
+
+                        <th>Payment</th>
+
+                        <th>UTR</th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody id="transactionTableBody">
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
 
 </div>
 
 
 <script>
 
+const API_BASE = "";
 
-function formatMoney(value) {
 
-return "₹" +
-Number(value || 0)
-.toLocaleString(
-"en-IN",
-{
-maximumFractionDigits: 2
+/* =========================
+   FORMAT CURRENCY
+========================= */
+
+function formatCurrency(value) {
+
+    return new Intl.NumberFormat(
+        "en-IN",
+        {
+            style: "currency",
+            currency: "INR",
+            maximumFractionDigits: 2
+        }
+    ).format(value || 0);
+
 }
-);
+
+
+/* =========================
+   SHOW MESSAGE
+========================= */
+
+function showMessage(message, type) {
+
+    const box = document.getElementById("formMessage");
+
+    box.textContent = message;
+
+    box.className = "message " + type;
+
+    box.style.display = "block";
 
 }
 
+
+/* =========================
+   LOAD DASHBOARD
+========================= */
 
 async function loadDashboard() {
 
-try {
+    try {
 
-const response =
-await fetch(
-"/api/dashboard"
-);
+        const response =
+            await fetch(
+                API_BASE + "/api/dashboard"
+            );
 
-const data =
-await response.json();
+        if (!response.ok) {
+            throw new Error("Dashboard failed");
+        }
 
+        const data = await response.json();
 
-document.getElementById(
-"income"
-).textContent =
-formatMoney(
-data.total_income
-);
+        document.getElementById(
+            "totalIncome"
+        ).textContent =
+            formatCurrency(data.total_income);
 
+        document.getElementById(
+            "totalExpenses"
+        ).textContent =
+            formatCurrency(data.total_expenses);
 
-document.getElementById(
-"expenses"
-).textContent =
-formatMoney(
-data.total_expenses
-);
+        document.getElementById(
+            "balance"
+        ).textContent =
+            formatCurrency(data.balance);
 
+        document.getElementById(
+            "sponsorshipPending"
+        ).textContent =
+            formatCurrency(data.sponsorship_pending);
 
-document.getElementById(
-"balance"
-).textContent =
-formatMoney(
-data.balance
-);
+    }
 
+    catch (error) {
 
-document.getElementById(
-"pending"
-).textContent =
-formatMoney(
-data.sponsorship_pending
-);
+        console.error(error);
 
-
-}
-
-catch(error) {
-
-console.error(error);
-
-}
+    }
 
 }
 
 
+/* =========================
+   LOAD TRANSACTIONS
+========================= */
 
 async function loadTransactions() {
 
-try {
+    const loading =
+        document.getElementById(
+            "transactionsLoading"
+        );
 
-const response =
-await fetch(
-"/api/transactions"
-);
+    const table =
+        document.getElementById(
+            "transactionTableBody"
+        );
 
-const transactions =
-await response.json();
+    try {
+
+        const response =
+            await fetch(
+                API_BASE + "/api/transactions"
+            );
+
+        if (!response.ok) {
+            throw new Error(
+                "Unable to load transactions"
+            );
+        }
+
+        const transactions =
+            await response.json();
+
+        table.innerHTML = "";
+
+        loading.style.display = "none";
 
 
-const tbody =
-document.getElementById(
-"transactions"
-);
+        if (transactions.length === 0) {
+
+            table.innerHTML = `
+                <tr>
+                    <td colspan="10">
+                        No transactions found.
+                    </td>
+                </tr>
+            `;
+
+            return;
+
+        }
 
 
-if (
-transactions.length === 0
-) {
+        transactions.forEach(
+            transaction => {
 
-tbody.innerHTML = `
-<tr>
-<td colspan="7"
-class="empty">
+                const row =
+                    document.createElement("tr");
 
-No transactions found.
 
-</td>
-</tr>
-`;
+                const typeClass =
+                    transaction.transaction_type === "income"
+                        ? "income"
+                        : "expense";
 
-return;
+
+                row.innerHTML = `
+
+                    <td>
+                        ${transaction.transaction_date || ""}
+                    </td>
+
+                    <td>
+                        ${transaction.transaction_ref || ""}
+                    </td>
+
+                    <td class="${typeClass}">
+                        ${transaction.transaction_type || ""}
+                    </td>
+
+                    <td>
+                        ${transaction.category || ""}
+                    </td>
+
+                    <td>
+                        ${transaction.name_or_vendor || ""}
+                    </td>
+
+                    <td>
+                        ${transaction.flat_number || ""}
+                    </td>
+
+                    <td>
+                        ${transaction.mobile || ""}
+                    </td>
+
+                    <td>
+                        ${formatCurrency(transaction.amount)}
+                    </td>
+
+                    <td>
+                        ${transaction.payment_mode || ""}
+                    </td>
+
+                    <td>
+                        ${transaction.utr || ""}
+                    </td>
+
+                `;
+
+                table.appendChild(row);
+
+            }
+        );
+
+    }
+
+    catch (error) {
+
+        loading.textContent =
+            "Unable to load transactions.";
+
+        console.error(error);
+
+    }
 
 }
 
 
-tbody.innerHTML =
-transactions
-.slice(0, 50)
-.map(
-transaction => `
+/* =========================
+   SAVE TRANSACTION
+========================= */
 
-<tr>
+document
+    .getElementById("transactionForm")
+    .addEventListener(
+        "submit",
+        async function(event) {
 
-<td>
-${transaction.transaction_date}
-</td>
+            event.preventDefault();
 
-<td>
-${transaction.transaction_ref}
-</td>
 
-<td>
-${transaction.transaction_type}
-</td>
+            const saveButton =
+                document.getElementById(
+                    "saveButton"
+                );
 
-<td>
-${transaction.name_or_vendor}
-</td>
 
-<td>
-${transaction.category}
-</td>
+            saveButton.disabled = true;
 
-<td>
-${formatMoney(
-transaction.amount
-)}
-</td>
+            saveButton.textContent =
+                "Saving...";
 
-<td>
-${transaction.payment_mode || ""}
-</td>
 
-</tr>
+            try {
 
-`
-)
-.join("");
+                /* -------------------------
+                   COLLECT FORM DATA
+                ------------------------- */
 
+                const transaction = {
+
+                    transaction_type:
+                        document.getElementById(
+                            "transactionType"
+                        ).value,
+
+                    category:
+                        document.getElementById(
+                            "category"
+                        ).value,
+
+                    name:
+                        document.getElementById(
+                            "name"
+                        ).value,
+
+                    flat_number:
+                        document.getElementById(
+                            "flatNumber"
+                        ).value || null,
+
+                    mobile:
+                        document.getElementById(
+                            "mobile"
+                        ).value || null,
+
+                    amount:
+                        parseFloat(
+                            document.getElementById(
+                                "amount"
+                            ).value
+                        ),
+
+                    payment_mode:
+                        document.getElementById(
+                            "paymentMode"
+                        ).value || null,
+
+                    utr:
+                        document.getElementById(
+                            "utr"
+                        ).value || null,
+
+                    remarks:
+                        document.getElementById(
+                            "remarks"
+                        ).value || null
+
+                };
+
+
+                /* -------------------------
+                   CREATE TRANSACTION
+                ------------------------- */
+
+                const response =
+                    await fetch(
+                        API_BASE +
+                        "/api/transactions",
+                        {
+                            method: "POST",
+
+                            headers: {
+                                "Content-Type":
+                                    "application/json"
+                            },
+
+                            body:
+                                JSON.stringify(
+                                    transaction
+                                )
+                        }
+                    );
+
+
+                if (!response.ok) {
+
+                    const error =
+                        await response.json();
+
+                    throw new Error(
+                        error.detail ||
+                        "Unable to save transaction"
+                    );
+
+                }
+
+
+                const saved =
+                    await response.json();
+
+
+                /* -------------------------
+                   UPLOAD PAYMENT PROOF
+                ------------------------- */
+
+                const proof =
+                    document.getElementById(
+                        "paymentProof"
+                    ).files[0];
+
+
+                if (proof) {
+
+                    saveButton.textContent =
+                        "Uploading proof...";
+
+
+                    const formData =
+                        new FormData();
+
+                    formData.append(
+                        "file",
+                        proof
+                    );
+
+
+                    const uploadResponse =
+                        await fetch(
+                            API_BASE +
+                            "/api/transactions/" +
+                            saved.id +
+                            "/proof",
+                            {
+                                method: "POST",
+                                body: formData
+                            }
+                        );
+
+
+                    if (!uploadResponse.ok) {
+
+                        const uploadError =
+                            await uploadResponse.json();
+
+                        throw new Error(
+                            "Transaction saved, but payment proof upload failed: " +
+                            (
+                                uploadError.detail ||
+                                "Unknown error"
+                            )
+                        );
+
+                    }
+
+                }
+
+
+                /* -------------------------
+                   SUCCESS
+                ------------------------- */
+
+                showMessage(
+                    "Transaction " +
+                    saved.transaction_ref +
+                    " saved successfully.",
+                    "success"
+                );
+
+
+                resetForm();
+
+
+                await loadDashboard();
+
+                await loadTransactions();
+
+            }
+
+            catch (error) {
+
+                console.error(error);
+
+                showMessage(
+                    error.message ||
+                    "Something went wrong.",
+                    "error"
+                );
+
+            }
+
+            finally {
+
+                saveButton.disabled = false;
+
+                saveButton.textContent =
+                    "Save Transaction";
+
+            }
+
+        }
+    );
+
+
+/* =========================
+   RESET FORM
+========================= */
+
+function resetForm() {
+
+    document
+        .getElementById(
+            "transactionForm"
+        )
+        .reset();
 
 }
 
-catch(error) {
 
-console.error(error);
+/* =========================
+   INITIAL LOAD
+========================= */
 
-}
+loadDashboard();
 
-}
-
-
-
-async function refreshData() {
-
-await loadDashboard();
-
-await loadTransactions();
-
-}
-
-
-refreshData();
-
+loadTransactions();
 
 </script>
 
-
 </body>
-
 </html>
