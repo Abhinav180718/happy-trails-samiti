@@ -151,6 +151,7 @@ class Transaction(BaseModel):
     category: str
     name: str
     flat_number: Optional[str] = None
+    mobile: Optional[str] = None
     amount: float
     payment_mode: Optional[str] = None
     utr: Optional[str] = None
